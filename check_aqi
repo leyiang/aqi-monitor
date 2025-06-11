@@ -1,0 +1,2 @@
+cd /root/aqi-monitor
+python3 aqi_client.py
