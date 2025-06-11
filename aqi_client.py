@@ -6,6 +6,14 @@ from dotenv import load_dotenv
 import os
 import sqlite3
 from enum import Enum
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG,  # Set the minimum level to log
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    filename='aqi.log',  # Log to a file
+    filemode='a'
+)
 
 class AQILevel(Enum):
     GOOD = (0, 50, "Good")
@@ -77,9 +85,13 @@ def get_last_record() -> Optional[tuple]:
     return result
 
 def notify_level_change(data: AQIResponse, old_level: str, new_level: str):
-    """当AQI等级发生变化时通知用户"""
-    print(f"当前AQI: {data.aqi} {new_level}, 主要污染物: {data.dominentpol}")
-    # TODO: 实现实际的通知逻辑
+    logging.info(f"监测到AQI跳变：{old_level} -> {new_level}")
+
+    message = f"当前AQI: {data.aqi} {new_level}, 主要污染物: {data.dominentpol}"
+    logging.info(f"准备发送邮件通知：{message}")
+
+    # TODO: send_email(message)
+    print( message )
 
 def store_aqi(data: AQIResponse):
     """存储AQI数据并检查等级变化"""
@@ -98,8 +110,6 @@ def store_aqi(data: AQIResponse):
     conn.commit()
     conn.close()
     
-    # 检查是否发生等级变化
-    print("Try check")
     if last_record and last_record[1] != level.name:
         notify_level_change(data, last_record[1], level.name)
 
@@ -111,13 +121,15 @@ def get_aqi(token: str) -> AQIResponse:
     data = response.json()
     
     if data['status'] != 'ok':
+        logging.error(f"API返回错误: {data.get('data')}")
         raise ValueError(f"API返回错误: {data.get('data')}")
         
     return AQIResponse.from_response(data['data'])
 
 # 使用示例
 if __name__ == "__main__":
-    # 替换为你的API token
+    logging.info("\n\n====")
+
     load_dotenv()
     TOKEN = os.getenv("AQICN_TOKEN")
     
@@ -137,5 +149,7 @@ if __name__ == "__main__":
         print(f"等级: {level.name} ({level.value[2]})")
         print(f"主要污染物: {result.dominentpol}")
         print(f"更新时间: {result.time}")
+        logging.info(f"获得：浦东惠南AQI: {result.aqi} {level.name} {result.dominentpol} {result.time}")
     except (requests.RequestException, ValueError) as e:
         print(f"错误: {str(e)}") 
+        logging.error(f"错误: {str(e)}")
