@@ -149,7 +149,10 @@ if __name__ == "__main__":
         print(f"等级: {level.name} ({level.value[2]})")
         print(f"主要污染物: {result.dominentpol}")
         print(f"更新时间: {result.time}")
-        logging.info(f"获得：浦东惠南AQI: {result.aqi} {level.name} {result.dominentpol} {result.time}")
+
+        logging.info(f"成功获取浦东惠南AQI: {result.aqi}")
+        logging.info(f"主要污染物: {result.dominentpol}")
+
     except (requests.RequestException, ValueError) as e:
         print(f"错误: {str(e)}") 
         logging.error(f"错误: {str(e)}")
