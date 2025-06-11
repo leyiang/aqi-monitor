@@ -112,6 +112,8 @@ def store_aqi(data: AQIResponse):
     
     if last_record and last_record[1] != level.name:
         notify_level_change(data, last_record[1], level.name)
+    else:
+        logging.info(f"没有监测到跳变，当前AQI: {data.aqi} {level.name}")
 
 def get_aqi(token: str) -> AQIResponse:
     """获取浦东惠南的AQI数据"""
